@@ -24,6 +24,9 @@ use {
     tracing::{debug, warn},
 };
 
+#[cfg(feature = "conduit_bin")]
+mod axum;
+
 /// This struct converts rocket requests into ruma structs by converting them into http requests
 /// first.
 pub struct Ruma<T: Outgoing> {

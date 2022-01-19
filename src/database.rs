@@ -1012,6 +1012,26 @@ impl Deref for DatabaseGuard {
     }
 }
 
+#[cfg(feature = "conduit_bin")]
+#[axum::async_trait]
+impl<B> axum::extract::FromRequest<B> for DatabaseGuard
+where
+    B: Send,
+{
+    type Rejection = axum::extract::rejection::ExtensionRejection;
+
+    async fn from_request(
+        req: &mut axum::extract::RequestParts<B>,
+    ) -> Result<Self, Self::Rejection> {
+        use axum::extract::Extension;
+
+        let Extension(db): Extension<Arc<TokioRwLock<Database>>> =
+            Extension::from_request(req).await?;
+
+        Ok(DatabaseGuard(db.read_owned().await))
+    }
+}
+
 #[rocket::async_trait]
 impl<'r> FromRequest<'r> for DatabaseGuard {
     type Error = ();
